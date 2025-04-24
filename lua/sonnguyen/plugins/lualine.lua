@@ -1,42 +1,40 @@
 return {
 	"nvim-lualine/lualine.nvim",
-	dependencies = { "nvim-tree/nvim-web-devicons" },
+	dependencies = {
+		"nvim-tree/nvim-web-devicons",
+		"f-person/git-blame.nvim",
+	},
 	config = function()
 		local lualine = require("lualine")
 		local lazy_status = require("lazy.status") -- to configure lazy pending updates count
+		local git_blame = require("gitblame")
+		vim.g.gitblame_display_virtual_text = 0
 
 		-- configure lualine with modified theme
 		lualine.setup({
 			options = {
-				theme = "gruvbox",
-				component_separators = { left = "", right = "" },
-				separator = { right = "", left = "" },
-				-- section_separators = { left = "", right = "" },
+				theme = "everforest",
+				section_separators = { left = "", right = "" },
 			},
 			sections = {
 				lualine_a = {
 					{
 						"mode",
-						-- separator = {
-						-- 	left = "{",
-						-- 	right = "}",
-						-- 	-- left = "",
-						-- },
+						separator = {
+							left = "",
+						},
 						right_padding = 2,
-						color = { fg = "#fdc675" },
 					},
 				},
 				lualine_b = {
-					-- separator = {
-					-- 	left = "{",
-					-- 	right = "}",
-					-- 	-- left = "",
-					-- },
+					separator = {
+						left = "",
+					},
 					"filename",
 					"branch",
-					color = { fg = "#fd9d75" },
 				},
 				lualine_c = {
+					{ git_blame.get_current_blame_text, cond = git_blame.is_blame_text_available },
 					{
 						"diagnostics",
 
@@ -66,26 +64,22 @@ return {
 					{
 						lazy_status.updates,
 						cond = lazy_status.has_updates,
-						color = { fg = "#d3fda1" },
 					},
 				},
 				lualine_y = {
 					"encoding",
 					"fileformat",
 					"filetype",
-					color = { fg = "#96e3a5" },
 				},
 				lualine_z = {
 					{
 						"location",
 						left_padding = 2,
-						color = { fg = "#41bec2" },
 					},
 					{
 						"progress",
-						-- separator = { right = "" },
+						separator = { right = "" },
 						left_padding = 2,
-						color = { fg = "#41bec2" },
 					},
 				},
 			},

@@ -40,7 +40,7 @@ return {
 			on_clear = function() end,
 		})
 
-		transparent.clear_prefix("lualine")
+		-- transparent.clear_prefix("lualine")
 		transparent.clear_prefix("BufferLine")
 	end,
 }
