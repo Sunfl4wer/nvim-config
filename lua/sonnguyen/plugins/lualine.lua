@@ -7,8 +7,6 @@ return {
 	config = function()
 		local lualine = require("lualine")
 		local lazy_status = require("lazy.status") -- to configure lazy pending updates count
-		local git_blame = require("gitblame")
-		vim.g.gitblame_display_virtual_text = 0
 
 		-- configure lualine with modified theme
 		lualine.setup({
@@ -20,21 +18,22 @@ return {
 				lualine_a = {
 					{
 						"mode",
-						separator = {
-							left = "",
-						},
 						right_padding = 2,
+					},
+					{
+						"separator",
+						left = "",
 					},
 				},
 				lualine_b = {
-					separator = {
+					{
+						"separator",
 						left = "",
 					},
 					"filename",
 					"branch",
 				},
 				lualine_c = {
-					{ git_blame.get_current_blame_text, cond = git_blame.is_blame_text_available },
 					{
 						"diagnostics",
 

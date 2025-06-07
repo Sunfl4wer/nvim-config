@@ -129,8 +129,6 @@ return {
 				{ name = "nvim_lsp" },
 				{ name = "luasnip", keyword_length = 2 },
 				{ name = "buffer", keyword_length = 5 },
-				-- { name = "conjure" },
-				{ name = "codecompanion" },
 			},
 			performance = {
 				max_view_entries = 20,
