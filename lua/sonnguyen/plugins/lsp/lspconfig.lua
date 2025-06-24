@@ -9,13 +9,10 @@ return {
 	config = function()
 		-- import lspconfig plugin
 		local lspconfig = require("lspconfig")
-
 		-- import mason_lspconfig plugin
 		local mason_lspconfig = require("mason-lspconfig")
-
 		-- import cmp-nvim-lsp plugin
 		local cmp_nvim_lsp = require("cmp_nvim_lsp")
-
 		local keymap = vim.keymap -- for conciseness
 
 		vim.api.nvim_create_autocmd("LspAttach", {
@@ -117,6 +114,25 @@ return {
 			["clangd"] = function()
 				lspconfig["clangd"].setup({
 					filetypes = { "c", "cpp", "objc", "objcpp", "cuda", "hpp" },
+				})
+			end,
+			["gopls"] = function()
+				lspconfig["gopls"].setup({
+					capabilities = capabilities,
+					settings = {
+						gopls = {
+							completeUnimported = true,
+							buildFlags = { "-tags=wireinject" }, -- Example: Add specific build tags if needed
+							-- You might want to enable/disable certain features
+							analyses = {
+								unreachable = true,
+								unusedparams = true,
+								unusedwrite = true,
+							},
+							staticcheck = true,
+						},
+					},
+					filetypes = { "go", "gomod", "gowork" },
 				})
 			end,
 		})
