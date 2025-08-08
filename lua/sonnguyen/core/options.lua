@@ -56,3 +56,11 @@ vim.api.nvim_create_autocmd({ "BufWinLeave" }, {
 		vim.opt.colorcolumn = "120"
 	end,
 })
+
+vim.api.nvim_create_autocmd("BufWritePost", {
+	pattern = "*.go",
+	callback = function()
+		vim.cmd([[silent! execute '!goimports -w %']])
+		vim.cmd("edit!") -- reload buffer to reflect changes
+	end,
+})
