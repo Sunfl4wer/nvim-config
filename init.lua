@@ -13,11 +13,37 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 -- =============== basics ===============
-vim.g.mapleader = " "
-vim.opt.number = true
-vim.opt.signcolumn = "yes"
-vim.opt.termguicolors = true
-vim.opt.updatetime = 250
+vim.g.mapleader = "\\"
+local opt = vim.opt
+opt.relativenumber = true
+opt.number = true
+-- tabs & indentation
+opt.tabstop = 2 -- 2 spaces for tabs (prettier default)
+opt.shiftwidth = 2 -- 2 spaces for indent width
+opt.expandtab = true -- expand tab to spaces
+opt.autoindent = true -- copy indent from current line when starting new one
+opt.wrap = false
+-- search settings
+opt.ignorecase = true -- ignore case when searching
+opt.smartcase = true -- if you include mixed case in your search, assumes you want case-sensitive
+opt.cursorline = true
+-- turn on termguicolors for tokyonight colorscheme to work
+-- (have to use iterm2 or any other true color terminal)
+opt.termguicolors = true
+opt.background = "dark" -- colorschemes that can be light or dark will be made dark
+opt.signcolumn = "yes" -- show sign column so that text doesn't shift
+-- backspace
+opt.backspace = "indent,eol,start" -- allow backspace on indent, end of line or insert mode start position
+-- split windows
+opt.splitright = true -- split vertical window to the right
+opt.splitbelow = true -- split horizontal window to the bottom
+-- turn off swapfile
+opt.swapfile = false
+vim.cmd("set spell")
+-- wrapping
+vim.opt.formatoptions = "jcroqlnt"
+vim.opt.textwidth = 80
+vim.opt.colorcolumn = "120"
 
 -- =============== plugins ===============
 require("lazy").setup({
@@ -63,6 +89,7 @@ require("lazy").setup({
 			vim.g.go_fmt_autosave = 0 -- let conform do formatting
 			vim.g.go_imports_autosave = 0 -- handled by conform (goimports/gofumpt)
 			vim.g.go_doc_keywordprg_enabled = 0 -- keep K mapped to LSP hover
+			vim.g.go_def_mapping_enabled = 0 -- keep our LSP mappings (gd, K, etc.)
 		end,
 		config = function()
 			-- Handy commands/keymaps
@@ -122,17 +149,79 @@ require("lazy").setup({
 		},
 	},
 
-	-- ===== FZF fuzzy finder =====
+	-- ===== telescope =====
 	{
-		"ibhagwan/fzf-lua",
-		dependencies = { "nvim-tree/nvim-web-devicons" },
+		"nvim-telescope/telescope.nvim",
+		branch = "0.1.x",
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			"nvim-tree/nvim-web-devicons",
+			{
+				"nvim-telescope/telescope-fzf-native.nvim",
+				build = "make",
+				cond = function()
+					return vim.fn.executable("make") == 1
+				end,
+			},
+			"nvim-telescope/telescope-ui-select.nvim",
+		},
 		config = function()
-			local fzf = require("fzf-lua")
-			fzf.setup({})
-			vim.keymap.set("n", "<leader>ff", fzf.files, { desc = "Files" })
-			vim.keymap.set("n", "<leader>fg", fzf.live_grep, { desc = "Grep" })
-			vim.keymap.set("n", "<leader>fb", fzf.buffers, { desc = "Buffers" })
-			-- vim.keymap.set("n", "<leader>fh", fzf.helps, { desc = "Help" })
+			local telescope = require("telescope")
+			local builtin = require("telescope.builtin")
+
+			telescope.setup({
+				defaults = {
+					mappings = {
+						i = { ["<C-j>"] = "move_selection_next", ["<C-k>"] = "move_selection_previous" },
+					},
+					layout_strategy = "flex",
+				},
+				pickers = {
+					find_files = { hidden = true },
+					lsp_definitions = { show_line = true },
+					lsp_references = { show_line = true },
+					diagnostics = { previewer = true },
+				},
+				extensions = {
+					fzf = {
+						fuzzy = true,
+						override_generic_sorter = true,
+						override_file_sorter = true,
+						case_mode = "smart_case",
+					},
+					["ui-select"] = {
+						require("telescope.themes").get_dropdown({}),
+					},
+				},
+			})
+
+			pcall(telescope.load_extension, "fzf")
+			pcall(telescope.load_extension, "ui-select")
+
+			-- --- Standard pickers ---
+			local map = vim.keymap.set
+			map("n", "<leader>ff", builtin.find_files, { desc = "Files" })
+			map("n", "<leader>fg", builtin.live_grep, { desc = "Grep" })
+			map("n", "<leader>fb", builtin.buffers, { desc = "Buffers" })
+			map("n", "<leader>fh", builtin.help_tags, { desc = "Help" })
+
+			-- --- LSP with Telescope pickers ---
+			map("n", "gd", builtin.lsp_definitions, { desc = "LSP Definitions (Telescope)" })
+			map("n", "gr", builtin.lsp_references, { desc = "LSP References (Telescope)" })
+			map("n", "gI", builtin.lsp_implementations, { desc = "LSP Implementations (Telescope)" })
+			map("n", "<leader>ds", builtin.lsp_document_symbols, { desc = "Document Symbols (Telescope)" })
+			map("n", "<leader>ws", builtin.lsp_dynamic_workspace_symbols, { desc = "Workspace Symbols (Telescope)" })
+			map("n", "<leader>xx", builtin.diagnostics, { desc = "Diagnostics (Telescope)" })
+
+			-- Code actions via Telescope UI-select:
+			-- Keep your original mapping; Telescope hijacks vim.ui.select nicely.
+			map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action (Telescope)" })
+
+			-- If you specifically want a Telescope picker for code actions (alternative):
+			-- map({ "n", "v" }, "<leader>cA", builtin.lsp_code_actions, { desc = "Code Actions (picker)" })
+
+			-- Declarations aren’t a Telescope builtin; keep native:
+			map("n", "gD", vim.lsp.buf.declaration, { desc = "LSP Declaration" })
 		end,
 	},
 
@@ -182,15 +271,20 @@ require("lazy").setup({
 
 	-- Markdown preview
 	{
-		"iamcco/markdown-preview.nvim",
-		ft = { "markdown" },
-		build = function()
-			vim.fn["mkdp#util#install"]()
-		end,
-		init = function()
-			vim.g.mkdp_auto_start = 0
-			vim.g.mkdp_echo_preview_url = 1
-		end,
+		"OXY2DEV/markview.nvim",
+		lazy = false,
+
+		-- For `nvim-treesitter` users.
+		priority = 49,
+
+		-- For blink.cmp's completion
+		-- source
+		-- dependencies = {
+		--     "saghen/blink.cmp"
+		-- },
+		preview = {
+			icon_provider = "internal", -- "mini" or "devicons"
+		},
 	},
 
 	-- ===== Debugger =====
@@ -225,10 +319,10 @@ local on_attach = function(_, bufnr)
 	local map = function(m, lhs, rhs)
 		vim.keymap.set(m, lhs, rhs, { buffer = bufnr })
 	end
-	map("n", "gd", vim.lsp.buf.definition)
-	map("n", "gr", vim.lsp.buf.references)
-	map("n", "gi", vim.lsp.buf.implementation)
-	map("n", "K", vim.lsp.buf.hover)
+	-- map("n", "gd", vim.lsp.buf.definitions)
+	-- map("n", "gr", vim.lsp.buf.references)
+	-- map("n", "gi", vim.lsp.buf.implementation)
+	-- map("n", "K", vim.lsp.buf.hover)
 	map("n", "<leader>rn", vim.lsp.buf.rename)
 	map("n", "<leader>ca", vim.lsp.buf.code_action)
 	map("n", "<leader>f", function()
@@ -238,14 +332,43 @@ end
 
 -- gopls
 lsp.gopls.setup({
+	cmd = { "gopls" }, -- uses whatever is on PATH (Mason or system)
+	filetypes = { "go", "gomod", "gowork", "gotmpl" },
+	root_dir = util.root_pattern("go.work", "go.mod", ".git"),
 	capabilities = cmp_cap,
 	on_attach = on_attach,
 	settings = {
 		gopls = {
-			gofumpt = true,
-			analyses = { unusedparams = true, fieldalignment = true },
+			-- quality-of-life
+			usePlaceholders = true,
+			completeUnimported = true,
 			staticcheck = true,
-			hints = { parameterNames = true, rangeVariableTypes = true },
+			gofumpt = true,
+			-- keep gopls from crawling huge vendor/dirs
+			directoryFilters = { "-.git", "-node_modules", "-vendor" },
+			-- -- analyses (fine to trim if too noisy)
+			-- analyses = {
+			--   unusedparams = true, unusedwrite = true, nilness = true,
+			--   shadow = true, useany = true,
+			-- },
+			-- code lenses (visible via :LspLens or inline)
+			codelenses = {
+				test = true,
+				tidy = true,
+				upgrade_dependency = true,
+				generate = true,
+				vendor = true,
+				gc_details = false,
+			},
+			-- inlay hints (requires Neovim 0.10+ for native hints)
+			hints = {
+				assignVariableTypes = true,
+				compositeLiteralFields = true,
+				compositeLiteralTypes = true,
+				constantValues = true,
+				parameterNames = true,
+				rangeVariableTypes = true,
+			},
 		},
 	},
 })
@@ -264,7 +387,7 @@ lsp.lua_ls.setup({
 
 -- =============== nvim-cmp (completion) ===============
 local cmp = require("cmp")
-local luasnip = require("LuaSnip")
+local luasnip = require("luasnip")
 require("luasnip.loaders.from_vscode").lazy_load()
 
 cmp.setup({
