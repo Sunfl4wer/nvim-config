@@ -6,92 +6,80 @@ return {
 	},
 	config = function()
 		local lualine = require("lualine")
-		local lazy_status = require("lazy.status") -- to configure lazy pending updates count
+		local lazy_status = require("lazy.status")
+		local has_git_blame, git_blame = pcall(require, "gitblame")
 
-		-- configure lualine with modified theme
+		local function blame_component()
+			if has_git_blame and git_blame.is_blame_text_available() then
+				return git_blame.get_current_blame_text()
+			end
+			return ""
+		end
+
 		lualine.setup({
 			options = {
-				theme = "everforest",
+				theme = "gruvbox-material",
+				globalstatus = true,
+				component_separators = { left = "", right = "" },
 				section_separators = { left = "", right = "" },
 			},
 			sections = {
 				lualine_a = {
 					{
 						"mode",
+						icon = "",
+						separator = { left = "", right = "" },
 						right_padding = 2,
-					},
-					{
-						"separator",
-						left = "",
 					},
 				},
 				lualine_b = {
-					{
-						"separator",
-						left = "",
-					},
-					"filename",
-					"branch",
+					{ "branch", icon = "" },
+					"diff",
 				},
 				lualine_c = {
 					{
 						"diagnostics",
-
-						-- Table of diagnostic sources, available sources are:
-						--   'nvim_lsp', 'nvim_diagnostic', 'nvim_workspace_diagnostic', 'coc', 'ale', 'vim_lsp'.
-						-- or a function that returns a table as such:
-						--   { error=error_cnt, warn=warn_cnt, info=info_cnt, hint=hint_cnt }
-						sources = { "nvim_lsp", "nvim_diagnostic" },
-
-						-- Displays diagnostics for the defined severity types
+						sources = { "nvim_diagnostic" },
 						sections = { "error", "warn", "info", "hint" },
-
 						diagnostics_color = {
-							-- Same values as the general color option can be used here.
-							error = "DiagnosticError", -- Changes diagnostics' error color.
-							warn = "DiagnosticWarn", -- Changes diagnostics' warn color.
-							info = "DiagnosticInfo", -- Changes diagnostics' info color.
-							hint = "DiagnosticHint", -- Changes diagnostics' hint color.
+							error = "DiagnosticError",
+							warn = "DiagnosticWarn",
+							info = "DiagnosticInfo",
+							hint = "DiagnosticHint",
 						},
 						symbols = { error = "E", warn = "W", info = "I", hint = "H" },
-						colored = true, -- Displays diagnostics status in color if set to true.
-						update_in_insert = false, -- Update diagnostics in insert mode.
-						always_visible = false, -- Show diagnostics even if there are none.
+						update_in_insert = false,
 					},
+					{ "filename", path = 1, symbols = { modified = " ", readonly = " ", unnamed = "" } },
 				},
 				lualine_x = {
 					{
 						lazy_status.updates,
 						cond = lazy_status.has_updates,
+						icon = "",
 					},
-				},
-				lualine_y = {
+					blame_component,
 					"encoding",
-					"fileformat",
 					"filetype",
 				},
+				lualine_y = { "progress" },
 				lualine_z = {
 					{
 						"location",
-						left_padding = 2,
-					},
-					{
-						"progress",
 						separator = { right = "" },
 						left_padding = 2,
 					},
 				},
 			},
 			inactive_sections = {
-				lualine_a = { "filename" },
+				lualine_a = { { "filename", path = 1 } },
 				lualine_b = {},
-				lualine_c = { "os.date('%a')", "data", "require'lsp-status'.status()" },
-				lualine_x = {},
+				lualine_c = {},
+				lualine_x = { "location" },
 				lualine_y = {},
-				lualine_z = { "location" },
+				lualine_z = {},
 			},
-			tabline = {},
-			extensions = {},
+			extensions = { "quickfix", "trouble", "fugitive", "lazy" },
 		})
 	end,
 }

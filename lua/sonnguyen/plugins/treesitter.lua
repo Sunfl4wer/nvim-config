@@ -47,11 +47,6 @@ return {
 					"c",
 					"go",
 				},
-				rainbow = {
-					enable = true,
-					extended_mode = true,
-					max_file_lines = nil,
-				},
 				incremental_selection = {
 					enable = true,
 					keymaps = {
@@ -178,6 +173,28 @@ return {
 			vim.keymap.set({ "n", "x", "o" }, "F", ts_repeat_move.builtin_F)
 			vim.keymap.set({ "n", "x", "o" }, "t", ts_repeat_move.builtin_t)
 			vim.keymap.set({ "n", "x", "o" }, "T", ts_repeat_move.builtin_T)
+		end,
+	},
+	{
+		"HiPhish/rainbow-delimiters.nvim",
+		event = { "BufReadPre", "BufNewFile" },
+		config = function()
+			local rainbow_delimiters = require("rainbow-delimiters")
+			vim.g.rainbow_delimiters = {
+				strategy = {
+					[""] = rainbow_delimiters.strategy["global"],
+					vim = rainbow_delimiters.strategy["local"],
+				},
+				highlight = {
+					"RainbowDelimiterRed",
+					"RainbowDelimiterOrange",
+					"RainbowDelimiterYellow",
+					"RainbowDelimiterGreen",
+					"RainbowDelimiterBlue",
+					"RainbowDelimiterViolet",
+					"RainbowDelimiterCyan",
+				},
+			}
 		end,
 	},
 }

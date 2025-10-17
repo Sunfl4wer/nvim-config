@@ -51,21 +51,10 @@ return {
 			end,
 		})
 
-		local lsp = vim.lsp
-		local make_client_capabilities = lsp.protocol.make_client_capabilities
-		function lsp.protocol.make_client_capabilities()
-			local caps = make_client_capabilities()
-			if not (caps.workspace or {}).didChangeWatchedFiles then
-				vim.notify("lsp capability didChangeWatchedFiles is already disabled", vim.log.levels.WARN)
-			else
-				caps.workspace.didChangeWatchedFiles = nil
-			end
-
-			return caps
-		end
-
 		-- used to enable autocompletion (assign to every lsp server config)
 		local capabilities = cmp_nvim_lsp.default_capabilities()
+		capabilities.workspace = capabilities.workspace or {}
+		capabilities.workspace.didChangeWatchedFiles = nil
 
 		-- Change the Diagnostic symbols in the sign column (gutter)
 		-- (not in youtube nvim video)

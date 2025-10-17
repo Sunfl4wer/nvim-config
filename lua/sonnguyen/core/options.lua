@@ -10,6 +10,7 @@ opt.tabstop = 2 -- 2 spaces for tabs (prettier default)
 opt.shiftwidth = 2 -- 2 spaces for indent width
 opt.expandtab = true -- expand tab to spaces
 opt.autoindent = true -- copy indent from current line when starting new one
+opt.scrolloff = 999 -- keeping cursor in the middle
 
 opt.wrap = false
 
@@ -35,32 +36,18 @@ opt.splitbelow = true -- split horizontal window to the bottom
 -- turn off swapfile
 opt.swapfile = false
 
-vim.cmd("set spell")
-
 -- wrapping
-vim.opt.formatoptions = "jcroqlnt"
-vim.opt.textwidth = 80
-vim.opt.colorcolumn = "120"
+opt.formatoptions = "jcroqlnt"
+opt.textwidth = 80
+opt.colorcolumn = "120"
 
--- autocmds
-vim.api.nvim_create_autocmd("BufWinEnter", {
-	pattern = { "*.md" },
-	callback = function()
-		vim.opt.colorcolumn = "80"
-	end,
-})
+local group = vim.api.nvim_create_augroup("sonnguyen_text_buffer_settings", { clear = true })
 
-vim.api.nvim_create_autocmd({ "BufWinLeave" }, {
-	pattern = { "*.md" },
+vim.api.nvim_create_autocmd("FileType", {
+	group = group,
+	pattern = { "markdown", "gitcommit", "text" },
 	callback = function()
-		vim.opt.colorcolumn = "120"
-	end,
-})
-
-vim.api.nvim_create_autocmd("BufWritePost", {
-	pattern = "*.go",
-	callback = function()
-		vim.cmd([[silent! execute '!goimports -w %']])
-		vim.cmd("edit!") -- reload buffer to reflect changes
+		vim.opt_local.colorcolumn = "80"
+		vim.opt_local.spell = true
 	end,
 })

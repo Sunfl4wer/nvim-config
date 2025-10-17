@@ -27,6 +27,7 @@ return {
 			ensure_installed = {
 				"lua_ls",
 				"pyright",
+				"gopls",
 			},
 		})
 
@@ -37,6 +38,7 @@ return {
 				"isort", -- python formatter
 				"black", -- python formatter
 				"pylint",
+				"gofumpt", -- go formatter
 			},
 		})
 	end,
