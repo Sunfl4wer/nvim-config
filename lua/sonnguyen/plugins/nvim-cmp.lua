@@ -3,22 +3,17 @@ return {
 	dependencies = {
 		"hrsh7th/cmp-nvim-lsp",
 		"hrsh7th/cmp-buffer",
-		"L3MON4D3/LuaSnip",
-		"saadparwaiz1/cmp_luasnip",
 		"onsails/lspkind-nvim",
 		"lukas-reineke/cmp-under-comparator",
 	},
 	config = function()
 		local cmp = require("cmp")
-		local luasnip = require("luasnip")
 		local lspkind = require("lspkind")
 		local types = require("cmp.types")
 		local compare = require("cmp.config.compare")
 		local cmp_autopairs = require("nvim-autopairs.completion.cmp")
 
 		cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
-
-		luasnip.config.setup({})
 
 		local modified_priority = {
 			[types.lsp.CompletionItemKind.Variable] = types.lsp.CompletionItemKind.Method,
@@ -35,11 +30,6 @@ return {
 			preselect = false,
 			completion = {
 				completeopt = "menu,menuone,preview,noselect",
-			},
-			snippet = {
-				expand = function(args)
-					luasnip.lsp_expand(args.body)
-				end,
 			},
 			formatting = {
 				fields = { "menu", "abbr", "kind" },
